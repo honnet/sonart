@@ -1,69 +1,51 @@
-/*
-  void checkDistance() 
-  PVector getLerpedPos() 
-  PVector getPos() {
-  int getdistAlarm() {
-  void setdistAlarm(int dM) {
-  int gettempsTolerance() {
-  void settempsTolerance(int tT) {
-  int getdistAppel() {
-  int gettempsToAppel() {
-  void setdistAppel(int dAppel) {
-  void checkAlarm() {
-  void checkInfo() {
-
-
-*/
 class KinectTracker {
 
   // Size of kinect image
   int kw = 640;
   int kh = 480;
 
-  int posImageX = 120;
-  int posImageY = -25;
+  int posImageX = 320;
+  int posImageY = 95;
 
-  int sizeImageX = 1080;
-  int sizeImageY = 720;
+  // zoneAlert
+  int alertTime;
+  int toleranceTime = 9;
+  final int positX = width/2;
+  final int positY = 250;
+  final int TOUCH_SURFACE = 3;
+  final int HUMAN_SURFACE = 30;
 
-  // zoneAlerte
-  int tempsAlerte ;
-  int tempsTolerance = 9;       //valeur à ajuster    
-  int positX = width/2;
-  int positY = 250;
+  float move = 0;               //alertVisu()
 
-  float move = 0;                //alerteVisu()
-
-  //int distAlarm= 954;         //zoneAlarmART DECO580;
-  //int distAppel = 978;        //zone d'appel ART DECOv920;
+  //int distAlarm= 954;         //zoneAlarmART 
+  //int distCall = 978;         //call zone
   int distAlarm = 580;
-  int distAppel = 876;          //zone d'appel ART DECOv920;
+  int distCall = 876;           //call zone
 
-  //Zone Appel
-  int tempsAppel ;
-  int tempsToAppel = 50;        //VALEUR à ajuster SUR SITE
+  //Call zone
+  int callTime;
+  final int MAXCALLTIME = 50;
 
-  int tempsObservation = 47;
-  int antiJitter = 10;
-  int visuGauche = 0;           //timer Position visuGauche
-  int visuDroite = 0;
-  int visuCentre = 0;
+  final int OBSERVTIME = 47;
+  final int ANTIJITTER = 10;
+  int visuLeft = 0;
+  int visuRight = 0;
+  int visuCenter = 0;
 
   // Interpolated location
   PVector loc;
   PVector lerpedLoc;
 
   //zoneInfo
-  int tempsInfo ;
-  int tempsToInfo = 10;         //valeur à ajuste
+  int infoTime;
+  final int TIMETOINFO = -26;
   //distance Depth data
   int[] depth;
   //control orientation camera 
-  float deg = -26;
+  int deg = -26;
 
-  boolean affichCam = false; 
   // Raw location
-  boolean gauche,droite,centre;
+  boolean left,right,center;
 
   PImage display;
 
@@ -72,7 +54,6 @@ class KinectTracker {
   KinectTracker() {
     kinect.start();
     kinect.enableDepth(true);
-    // kinect.processDepthImage(true);
     display = createImage(kw,kh,PConstants.RGB);
     loc = new PVector(-50,-50);
     lerpedLoc = new PVector(-50,-50);
@@ -85,55 +66,52 @@ class KinectTracker {
     // Being overly cautious here
     if (depth == null) return;
 
-    float count = 0;
-    float posX = 0;
-    float posY = 0;
-    float pos = 0;
-    float appel = 0;
+    int posX = 0;
+    int posY = 0;
+    int count = 0;
+    int pos = 0;
+    int appel = 0;
 
-    for(int x = 0; x < kw; x++) {                                   // x+=2 ??
-      for(int y = 0; y < kh; y++) {                                 // y+=2 ??
-        int offset = kw-x-1+y*kw;    // Mirroring the image      
-        int rawDepth = depth[offset];// Grabbing the raw depth
+    for(int x = 0; x < kw; x++) {
+      for(int y = 0; y < kh; y++) {
+        int offset = kw-x-1 + y*kw;    // Mirroring the image      
+        int rawDepth = depth[offset];  // Grabbing the raw depth
         // Testing against threshold
 
-        //ZONE ALERTE ALARM
+        //ZONE ALERT ALARM
         if (rawDepth < distAlarm) {
           count++;
-          //utile ?
         }
         //ZONE INFORMATION
-        else if (rawDepth > distAlarm && rawDepth <= distAppel) {
-          posX += x; // ???
-          posY += y; // ???
+        else if (rawDepth > distAlarm && rawDepth <= distCall) {
+          posX += x;
+          posY += y;
           pos++;
-          //utile ?
         }
-        //ZONE APPEL
-        else if (rawDepth >distAppel ) {
+        //ZONE CALL
+        else {
           appel++;
-          //utile ?
         }
       }
     }
 
     // As long as we found something
-    if (count != 0) {
-      tempsAlerte += 1;  
-      tempsAppel = 0;
-      tempsInfo = 0;
+    if (count > TOUCH_SURFACE) {    // ALARM
+      alertTime += 1; 
+      callTime = 0;
+      infoTime = 0;
     }
-    else if (pos != 0) {//INFO
-      loc = new PVector(posX/pos, posY/pos); //affiche la position
-      tempsInfo += 1;
-      tempsAlerte = 0;
-      tempsAppel = 0;
+    else if (pos > HUMAN_SURFACE) { // INFO
+      loc = new PVector(posX/pos, posY/pos);
+      infoTime += 1;
+      alertTime = 0;
+      callTime = 0;
     }
-    else if (appel != 0) {//APPEL
-      tempsAppel += 1;
-      tempsAlerte = 0;
-      tempsInfo=0;
-    }  
+    else {                          // CALL
+      callTime += 1;
+      alertTime = 0;
+      infoTime = 0;
+    }
 
     // Interpolating the location, doing it arbitrarily for now
     lerpedLoc.x = PApplet.lerp(lerpedLoc.x, loc.x, 0.3f);
@@ -149,7 +127,6 @@ class KinectTracker {
     return loc;
   }
 
-  // ALARM
   int getdistAlarm() {
     return distAlarm;
   }
@@ -158,31 +135,26 @@ class KinectTracker {
     distAlarm=  dM;
   }
 
-  int gettempsTolerance() {
-    return tempsTolerance;
+  int gettoleranceTime() {
+    return toleranceTime;
   }
 
-  void settempsTolerance(int tT) {
-    tempsTolerance=  tT;
+  void settoleranceTime(int tT) {
+    toleranceTime=  tT;
   }
 
-  // INFO
-  int getdistAppel() {
-    return distAppel;
+  int getdistCall() {
+    return distCall;
   }
 
-  int gettempsToAppel() {
-    return tempsToAppel;
-  }
-
-  void setdistAppel(int dAppel) {
-    distAppel=  dAppel;
+  void setdistCall(int dAppel) {
+    distCall=  dAppel;
   }
 
 /////////////////////////////////////////////////////////////////////
   void checkAlarm() {
-    if (tempsAlerte > tempsTolerance ) {
-      zone_Alerte = true;
+    if (alertTime > toleranceTime ) {
+      zone_Alert = true;
       zone_Appel = false;
       zone_Info = false;
       alarm.trigger();
@@ -191,30 +163,30 @@ class KinectTracker {
 
 /////////////////////////////////////////////////////////////////////
   void checkInfo() {
-    if (tempsInfo > tempsToInfo ) {
+    if (infoTime > TIMETOINFO ) {
       zone_Info = true; 
       zone_Appel = false;
-      zone_Alerte = false;
+      zone_Alert = false;
     }
   }
 
 /////////////////////////////////////////////////////////////////////
-  void checkAppel() { //ZONE APPEL text intro//lOGOS
-    if (tempsAppel > tempsToAppel ) { 
+  void checkAppel() {
+    if (callTime > MAXCALLTIME ) { 
       zone_Appel = true; 
       zone_Info = false;
-      zone_Alerte = false;
+      zone_Alert = false;
     }
   }
 
 /////////////////////////////////////////////////////////////////////
-  void zoneAlerte() {//ALEEERRTE
-    pixelizImage(); //infamous trick , too much trouble with the audio buffer 
-    alerteVisu();   
+  void zoneAlert() {//ALEEERRTE
+    pixelizImage(); // TODO: FIND SOUND PROBLEM !!! 
+    alertVisu();   
   }
 
 /////////////////////////////////////////////////////////////////////
-  void alerteVisu() {
+  void alertVisu() {
     int arcSize = 150;
     strokeWeight(7);
     stroke(250,0,0);
@@ -232,13 +204,13 @@ class KinectTracker {
     text(" SENSIBLE ",width/2-100,height/2+118);
     text(" 'SONART' vous révèle l'oeuvre ",width/2-310,height/2+208); 
 
-    ///LIMITE LE TEMPS DE L ALERTE
+    ///LIMIT ALERT TIME
     if (millis() - lastTime >= 3000) // Time to display next image //
     {
       // Increment counter, then compute its modulo, ie. reset it at zero when reaching images.length   
       lastTime = millis();
       // zone_Info = true;
-      zone_Alerte = false;
+      zone_Alert = false;
     }
   }
 
@@ -252,104 +224,102 @@ class KinectTracker {
         rect(i, j, pixel, pixel);
       }
     }
-    if (pixel < pixelMin) {
-      pixel = pixelMin;
+    if (pixel < PIXELMIN) {
+      pixel = PIXELMIN;
       blur = 1;
     }
-    if (pixel > pixelMax) {
-      pixel = pixelMax;
+    if (pixel > PIXELMAX) {
+      pixel = PIXELMAX;
       blur = -1;
     }
     pixel += blur;
     //check Pixelate example http://processing.org/discourse/yabb2/YaBB.pl?num = 1195520410
   }
-  // FIN ALERTE FUNCTIONS 
+  // FIN ALERT FUNCTIONS 
 
 /////////////////////////////////////////////////////////////////////
-  void zoneInfo() {//ZONE INFOS
+  void zoneInfo() { //ZONE INFOS
     PVector v1 = tracker.getPos();
 
-    if (v1.x <= kw*.43) {//GAUCHE position visiteur à gauche
-      visuGauche  += 1;
-      visuDroite  = 0;
-      visuCentre  = 0;
-      gauche = true;
+    if (v1.x <= kw*.43) { //left position visitor
+      visuLeft  += 1;
+      visuRight  = 0;
+      visuCenter  = 0;
+      left = true;
     }
 
-    if (v1.x >= kw*.66) {//DROITE
-      visuDroite += 1;
-      visuGauche = 0;
-      visuCentre = 0;
-      droite = true;
+    if (v1.x >= kw*.66) { //right
+      visuRight += 1;
+      visuLeft = 0;
+      visuCenter = 0;
+      right = true;
     }
 
-    if (v1.x > kw*.43 && v1.x < kw*.66) {//CENTRE
-      centre = true ; 
-      visuCentre += 1;
-      visuGauche = 0;
-      visuDroite = 0;
+    if (v1.x > kw*.43 && v1.x < kw*.66) { //centre
+      center = true ; 
+      visuCenter += 1;
+      visuLeft = 0;
+      visuRight = 0;
     }
 
-    VizCentre();
-    VizDroite();
-    VizGauche();
+    VizCenter();
+    VizRight();
+    VizLeft();
   }
 
 /////////////////////////////////////////////////////////////////////
-  void VizGauche() {
-    if (gauche == true && visuGauche>antiJitter ) {
-      droite = false;
-      centre = false;
-      if (visuGauche < tempsObservation) {
-        image(rhinoLeft1,posImageX,posImageY,sizeImageX,sizeImageY);
+  void VizLeft() {
+    if (left == true && visuLeft > ANTIJITTER ) {
+      right = false;
+      center = false;
+      if (visuLeft < OBSERVTIME) {
+        image(rhinoLeft1,posImageX,posImageY);
       }
-      else if (visuGauche > tempsObservation) {
-        image(rhinoLeft2,posImageX,posImageY,sizeImageX,sizeImageY);
+      else if (visuLeft > OBSERVTIME) {
+        image(rhinoLeft2,posImageX,posImageY);
       } 
 
-      if (visuGauche >= 2*tempsObservation) visuGauche = antiJitter+1;
+      if (visuLeft >= 2*OBSERVTIME) visuLeft = ANTIJITTER+1;
     }
   }
 
 /////////////////////////////////////////////////////////////////////
-  void VizDroite() {
-    if  (droite == true &&visuDroite > antiJitter) {
-      gauche = false;
-      centre = false;
-      if ( visuDroite <tempsObservation) {
-        image(rhinoRight1,posImageX,posImageY,sizeImageX,sizeImageY);
+  void VizRight() {
+    if  (right == true && visuRight > ANTIJITTER) {
+      left = false;
+      center = false;
+      if ( visuRight < OBSERVTIME) {
+        image(rhinoRight1,posImageX,posImageY);
       }
-      else if (visuDroite > tempsObservation) {
-        image(rhinoRight2,posImageX,posImageY,sizeImageX,sizeImageY);
+      else if (visuRight > OBSERVTIME) {
+        image(rhinoRight2,posImageX,posImageY);
       }
-      if (visuDroite >= (2*tempsObservation)) visuDroite = antiJitter+1;  //re initialise le compteur AntiJitter
+      if (visuRight >= (2*OBSERVTIME)) visuRight = ANTIJITTER+1;  //re initialise le compteur ANTIJITTER
     }
   }
 
 /////////////////////////////////////////////////////////////////////
-  void VizCentre() {
-    if  (centre == true  &&visuCentre>antiJitter) {
-      droite = false;
-      gauche = false;
-      if ( visuCentre<tempsObservation) {
-        image(rhinoMiddle,posImageX,posImageY,sizeImageX,sizeImageY);
+  void VizCenter() {
+    if  (center == true  && visuCenter > ANTIJITTER) {
+      right = false;
+      left = false;
+      if ( visuCenter < OBSERVTIME) {
+        image(rhinoMiddle,posImageX,posImageY);
       }
-      else if (visuCentre > tempsObservation ) {
-        image(rhinoFerme,posImageX,posImageY,sizeImageX,sizeImageY);
+      else if (visuCenter > OBSERVTIME ) {
+        image(rhinoFerme,posImageX,posImageY);
       }
-      if (visuCentre > 2*tempsObservation) visuCentre = antiJitter+1;
+      if (visuCenter > 2*OBSERVTIME) visuCenter = ANTIJITTER+1;
     }
   }
 
 /////////////////////////////////////////////////////////////////////
   void zoneAppel() { 
-    tempsAppel += 1;    
-
     textFont(afficheur);
     String titre = " Regards Augmentés 'SONART' ";
     String sujet = " Le toucher à l'ère du numérique ";
 
-    image(rhinoFerme,posImageX,posImageY,sizeImageX,sizeImageY);
+    image(rhinoFerme,posImageX,posImageY);
 
     fill(0);
     textSize(48);
@@ -367,7 +337,7 @@ class KinectTracker {
     if (millis() - lastTime >= DISPLAY_TIME) // Time to display next image
     {
       // Increment counter, then compute its modulo, ie. reset it at zero when reaching images.length
-      counter = ++counter % nbLogo;
+      counter = ++counter % NBLOGO;
       lastTime = millis();
     }
 
@@ -391,7 +361,6 @@ class KinectTracker {
     int sizecontrolViewX = 260;
     int sizecontrolViewY = 200;
     int esp = 20; 
-    int nbControl = 3;
     noFill();
     strokeWeight(1);
     stroke(250);
@@ -410,10 +379,10 @@ class KinectTracker {
     text("P5 FrRate:          "  + (int) frameRate, controlViewPosX, controlViewPosY+2*esp);
 
     text ("ZONES  ", controlViewPosX,controlViewPosY + 4*esp);
-    text ("Alerte DistAlarm   " + distAlarm      +   "   Press +/-",controlViewPosX,controlViewPosY + 5*esp );
-    text ("Alerte Tolerance   " + tempsTolerance + "     Press t/y",controlViewPosX,controlViewPosY + 6*esp );
-    text ("Appel DistAppel    " + distAppel      +   "   Press P/M",controlViewPosX,controlViewPosY + 7*esp);
-    text ("Camera Angle       " + deg            +     " Press UP/DOWN",controlViewPosX,controlViewPosY + 8*esp);
+    text ("Alert DistAlarm    " + distAlarm      +   "   Press +/-",controlViewPosX,controlViewPosY + 5*esp );
+    text ("Alert Tolerance    " + toleranceTime  + "     Press t/y",controlViewPosX,controlViewPosY + 6*esp );
+    text ("Appel distCall     " + distCall       +   "   Press P/M",controlViewPosX,controlViewPosY + 7*esp);
+    text ("Camera Angle       " + deg            +   "   Press UP/DOWN",controlViewPosX,controlViewPosY + 8*esp);
     text ("INTERFACE ON/OFF         Press I/O ",controlViewPosX,controlViewPosY + 12*esp);
   }  
 
@@ -463,22 +432,6 @@ class KinectTracker {
     rect(280,30,360,280);
     // Draw the image
     image(display,300,50,320,240);//resize la video pour debug
-  }
-
-/////////////////////////////////////////////////////////////////////
-  void affichePosition() {
-    // Let's draw the raw location
-    PVector v1 = tracker.getPos();
-    fill(50,100,250,200);
-    noStroke();
-    ellipse(v1.x,v1.y,20,20);
-    fill(255);
-    text("posX = " + int(v1.x) + "\nposY = " + int(v1.y), v1.x,v1.y);
-    // Let's draw the "lerped" location
-    PVector v2 = tracker.getLerpedPos();
-    fill(100,250,50,200);
-    noStroke();
-    ellipse(v2.x,v2.y,20,20);
   }
 
 /////////////////////////////////////////////////////////////////////

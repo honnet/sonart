@@ -29,7 +29,7 @@ KinectTracker tracker;
 Kinect kinect;
 
 boolean affichInterface = false;
-boolean zone_Alerte = false; 
+boolean zone_Alert = false; 
 boolean zone_Info = false;
 boolean zone_Appel = false;
 PImage rhinoMiddle;
@@ -39,17 +39,17 @@ PImage rhinoLeft1, rhinoLeft2;
 PImage logo_0, logo_1, logo_2, logo_3, logo_4;
 
 // manage logos diplay
-final int nbLogo = 5; 
+final int NBLOGO = 5; 
 final int DISPLAY_TIME = 2000;  // 2000 ms = 2 seconds
 int counter;                    // Automatically initialized at 0
 int lastTime;                   // When the current image was first displayed
-PImage[] logos = new PImage[nbLogo];
+PImage[] logos = new PImage[NBLOGO];
 
-// TODO : check if useful + CONST IN CAPITAL !!!
-final int pixelMin = 2 ;
-final int pixelMax = 12;
-int pixel = pixelMin;
-int blur = 1 ;
+// TODO : check if useful
+final int PIXELMIN = 2 ;
+final int PIXELMAX = 12;
+int pixel = PIXELMIN;
+int blur = 1;
 
 /////////////////////////////////////////////////////////
 void setup() {
@@ -69,19 +69,18 @@ void setup() {
 
   //RHINO
   //LEFT
-  rhinoLeft1=loadImage("rhino_left_open_mid.png");
-  rhinoLeft2=loadImage("rhino_left_open_up.png");
+  rhinoLeft1 = loadImage("rhino_left_open_mid.png");
+  rhinoLeft2 = loadImage("rhino_left_open_up.png");
   //RIGHT
-  rhinoRight1=loadImage("rhino_right_open_mid.png");
-  rhinoRight2=loadImage("rhino_right_open_up.png");
+  rhinoRight1 = loadImage("rhino_right_open_mid.png");
+  rhinoRight2 = loadImage("rhino_right_open_up.png");
   //CENTER
   rhinoMiddle = loadImage ("rhino_center_opened.png");
 
-  rhinoFerme=loadImage("rhino_all_closed.png"); 
-
+  rhinoFerme = loadImage("rhino_all_closed.png"); 
 
   lastTime = millis();
-  for (int i =0 ; i < nbLogo ; i++) { 
+  for (int i =0 ; i < NBLOGO ; i++) { 
     logos[i]= loadImage("logo_"+i+".jpg");
   }
 
@@ -90,25 +89,25 @@ void setup() {
 
 /////////////////////////////////////////////////////////
 void draw() {
-  background(255,5);
-  tint(255,255,255,250);
-  image(rhinoFerme,120,-25,1080,720 );
+  background(255);
+  tint(255,255,255);
+  image(rhinoFerme, tracker.posImageX, tracker.posImageY);
 
   tracker.checkDistance();
-
   tracker.checkInfo();
   tracker.checkAppel();
-
   tracker.checkAlarm();
 
-  if (zone_Appel) 	tracker.zoneAppel();
-  else if (zone_Alerte) tracker.zoneAlerte();
-  else if (zone_Info) 	tracker.zoneInfo();
+  if (zone_Appel)      tracker.zoneAppel();
+  else if (zone_Alert) tracker.zoneAlert();
+  else if (zone_Info)  tracker.zoneInfo();
 
   //DEBUG INFO
   if (key == 'i' || key =='I') affichInterface = true;
   if (key == 'o' || key =='O') affichInterface = false;
   if (affichInterface) tracker.controlView();
+
+  //delay(20); //waituntil(20) ?
 }
 
 /////////////////////////////////////////////////////////
@@ -123,24 +122,24 @@ void keyPressed() {
     dM-=1;
     tracker.setdistAlarm(dM);
   }
-  int dAppel = tracker.getdistAppel();
+  int dAppel = tracker.getdistCall();
   if (key == 'p'|| key=='P') {
     dAppel+=1;
-    tracker.setdistAppel(dAppel);
+    tracker.setdistCall(dAppel);
   } 
   else if (key== 'm'|| key== 'M') {
     dAppel-=1;
-    tracker.setdistAppel(dAppel);
+    tracker.setdistCall(dAppel);
   }
 
-  int tT = tracker.gettempsTolerance();
+  int tT = tracker.gettoleranceTime();
   if (key == 't'|| key=='T') {
     tT+=5;
-    tracker.settempsTolerance(tT);
+    tracker.settoleranceTime(tT);
   } 
   if (key == 'y'|| key=='Y') {
     tT+=-5;
-    tracker.settempsTolerance(tT);
+    tracker.settoleranceTime(tT);
   }
 }
 
