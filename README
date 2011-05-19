@@ -1,0 +1,20 @@
+Welcome to the sonart project!
+
+In this project we used openkinect to detect the presence & position of a person in order to offer more information about a piece of art in a museum.
+The system is composed of:
+-a kinect to detect visitors
+-a mini-PC with ubuntu and processing.org to get the data from the kinect
+-a video projector to display the information
+
+Here is the scenario:
+-if a visitor is far, the device gives general information
+-if he gets closer, some details are shown
+-if he gets too close an alarm sound & animation is played
+
+This project is the result of a scolar course that finished in the "Arts Décoratifs" muséum at the Louvres, Paris. Here is the course website: http://codesignlab.wp.institut-telecom.fr/2010/10/digital-creation10-student-works
+
+Enjoy !
+Jimmy & Drix.
+
+
+For any question, feel free to contact us : (jim or drix)@tangibledisplay.com
