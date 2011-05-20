@@ -4,7 +4,7 @@ class KinectTracker {
   int kw = 640;
   int kh = 480;
 
-  int posImageX = 320;
+  int posImageX = 100;
   int posImageY = 95;
 
   // zoneAlert
@@ -15,7 +15,7 @@ class KinectTracker {
   final int TOUCH_SURFACE = 3;
   final int HUMAN_SURFACE = 30;
 
-  float move = 0;               //alertVisu()
+  float move = 0;
 
   //int distAlarm= 954;         //zoneAlarmART 
   //int distCall = 978;         //call zone
@@ -26,7 +26,7 @@ class KinectTracker {
   int callTime;
   final int MAXCALLTIME = 50;
 
-  final int OBSERVTIME = 47;
+  final int OBSERVTIME = 30;
   final int ANTIJITTER = 10;
   int visuLeft = 0;
   int visuRight = 0;
@@ -43,9 +43,6 @@ class KinectTracker {
   int[] depth;
   //control orientation camera 
   int deg = -26;
-
-  // Raw location
-  boolean left,right,center;
 
   PImage display;
 
@@ -158,6 +155,7 @@ class KinectTracker {
       zone_Appel = false;
       zone_Info = false;
       alarm.trigger();
+      delay(300);
     }
   }
 
@@ -180,13 +178,11 @@ class KinectTracker {
   }
 
 /////////////////////////////////////////////////////////////////////
-  void zoneAlert() {//ALEEERRTE
-    pixelizImage(); // TODO: FIND SOUND PROBLEM !!! 
-    alertVisu();   
-  }
+  void zoneAlert() {
+    noStroke();
+    fill(0);
+    rect(0,0, width, height);
 
-/////////////////////////////////////////////////////////////////////
-  void alertVisu() {
     int arcSize = 150;
     strokeWeight(7);
     stroke(250,0,0);
@@ -205,39 +201,16 @@ class KinectTracker {
     text(" 'SONART' vous révèle l'oeuvre ",width/2-310,height/2+208); 
 
     ///LIMIT ALERT TIME
-    if (millis() - lastTime >= 3000) // Time to display next image //
+    if (millis() - lastTimeAlert >= 3000) // Time to display next image //
     {
       // Increment counter, then compute its modulo, ie. reset it at zero when reaching images.length   
-      lastTime = millis();
+      lastTimeAlert = millis();
       // zone_Info = true;
       zone_Alert = false;
     }
   }
 
   /////////////////////////////////////////////////////////////////////
-  void pixelizImage() {
-    noStroke();
-    for ( int i = 0; i < width; i += pixel ) {
-      for ( int j = 0; j < height; j += pixel) {
-        color c = rhinoFerme.get(i,j);
-        fill(0);
-        rect(i, j, pixel, pixel);
-      }
-    }
-    if (pixel < PIXELMIN) {
-      pixel = PIXELMIN;
-      blur = 1;
-    }
-    if (pixel > PIXELMAX) {
-      pixel = PIXELMAX;
-      blur = -1;
-    }
-    pixel += blur;
-    //check Pixelate example http://processing.org/discourse/yabb2/YaBB.pl?num = 1195520410
-  }
-  // FIN ALERT FUNCTIONS 
-
-/////////////////////////////////////////////////////////////////////
   void zoneInfo() { //ZONE INFOS
     PVector v1 = tracker.getPos();
 
@@ -245,71 +218,59 @@ class KinectTracker {
       visuLeft  += 1;
       visuRight  = 0;
       visuCenter  = 0;
-      left = true;
+      VizLeft();
     }
-
-    if (v1.x >= kw*.66) { //right
+    else if (v1.x >= kw*.66) { //right
       visuRight += 1;
       visuLeft = 0;
       visuCenter = 0;
-      right = true;
+      VizRight();
     }
-
-    if (v1.x > kw*.43 && v1.x < kw*.66) { //centre
-      center = true ; 
+    else { //centre
       visuCenter += 1;
       visuLeft = 0;
       visuRight = 0;
+      VizCenter(); 
     }
-
-    VizCenter();
-    VizRight();
-    VizLeft();
+    image(myImage,posImageX,posImageY);
   }
 
 /////////////////////////////////////////////////////////////////////
   void VizLeft() {
-    if (left == true && visuLeft > ANTIJITTER ) {
-      right = false;
-      center = false;
+    if (visuLeft > ANTIJITTER ) {
       if (visuLeft < OBSERVTIME) {
-        image(rhinoLeft1,posImageX,posImageY);
+        myImage = rhinoLeft1;
       }
-      else if (visuLeft > OBSERVTIME) {
-        image(rhinoLeft2,posImageX,posImageY);
+      else {
+        myImage = rhinoLeft2;
+        if (visuLeft >= 2*OBSERVTIME - ANTIJITTER) visuLeft = ANTIJITTER+1;
       } 
-
-      if (visuLeft >= 2*OBSERVTIME) visuLeft = ANTIJITTER+1;
     }
   }
 
 /////////////////////////////////////////////////////////////////////
   void VizRight() {
-    if  (right == true && visuRight > ANTIJITTER) {
-      left = false;
-      center = false;
+    if  (visuRight > ANTIJITTER) {
       if ( visuRight < OBSERVTIME) {
-        image(rhinoRight1,posImageX,posImageY);
+        myImage = rhinoRight1;
       }
-      else if (visuRight > OBSERVTIME) {
-        image(rhinoRight2,posImageX,posImageY);
+      else {
+        myImage = rhinoRight2;
+        if (visuRight >= (2*OBSERVTIME - ANTIJITTER)) visuRight = ANTIJITTER+1;
       }
-      if (visuRight >= (2*OBSERVTIME)) visuRight = ANTIJITTER+1;  //re initialise le compteur ANTIJITTER
     }
   }
 
 /////////////////////////////////////////////////////////////////////
   void VizCenter() {
-    if  (center == true  && visuCenter > ANTIJITTER) {
-      right = false;
-      left = false;
+    if  (visuCenter > ANTIJITTER) {
       if ( visuCenter < OBSERVTIME) {
-        image(rhinoMiddle,posImageX,posImageY);
+        myImage = rhinoMiddle;
       }
-      else if (visuCenter > OBSERVTIME ) {
-        image(rhinoFerme,posImageX,posImageY);
+      else {
+        myImage = rhinoFerme;
+        if (visuCenter > 2*OBSERVTIME - ANTIJITTER) visuCenter = ANTIJITTER+1;
       }
-      if (visuCenter > 2*OBSERVTIME) visuCenter = ANTIJITTER+1;
     }
   }
 
@@ -334,11 +295,11 @@ class KinectTracker {
     }
 
     //AFFICHE UN LOGO TOUT les ....
-    if (millis() - lastTime >= DISPLAY_TIME) // Time to display next image
+    if (millis() - lastTimeLogo >= DISPLAY_TIME) // Time to display next image
     {
       // Increment counter, then compute its modulo, ie. reset it at zero when reaching images.length
       counter = ++counter % NBLOGO;
-      lastTime = millis();
+      lastTimeLogo = millis();
     }
 
     image(logos[counter], 130,650);

@@ -32,17 +32,17 @@ boolean affichInterface = false;
 boolean zone_Alert = false; 
 boolean zone_Info = false;
 boolean zone_Appel = false;
-PImage rhinoMiddle;
-PImage rhinoFerme;
+PImage rhinoMiddle, rhinoFerme;
 PImage rhinoRight1, rhinoRight2;
 PImage rhinoLeft1, rhinoLeft2;
+PImage myImage;
 PImage logo_0, logo_1, logo_2, logo_3, logo_4;
 
 // manage logos diplay
 final int NBLOGO = 5; 
 final int DISPLAY_TIME = 2000;  // 2000 ms = 2 seconds
 int counter;                    // Automatically initialized at 0
-int lastTime;                   // When the current image was first displayed
+int lastTimeAlert, lastTimeLogo;// When the current image was first displayed
 PImage[] logos = new PImage[NBLOGO];
 
 // TODO : check if useful
@@ -78,20 +78,22 @@ void setup() {
   rhinoMiddle = loadImage ("rhino_center_opened.png");
 
   rhinoFerme = loadImage("rhino_all_closed.png"); 
+  myImage = rhinoFerme;
 
-  lastTime = millis();
+  lastTimeAlert = millis();
+  lastTimeLogo = millis();
   for (int i =0 ; i < NBLOGO ; i++) { 
     logos[i]= loadImage("logo_"+i+".jpg");
   }
 
   imageMode(CORNER);
+  kinect.tilt(tracker.deg);
 }
 
 /////////////////////////////////////////////////////////
 void draw() {
   background(255);
   tint(255,255,255);
-  image(rhinoFerme, tracker.posImageX, tracker.posImageY);
 
   tracker.checkDistance();
   tracker.checkInfo();
@@ -101,6 +103,8 @@ void draw() {
   if (zone_Appel)      tracker.zoneAppel();
   else if (zone_Alert) tracker.zoneAlert();
   else if (zone_Info)  tracker.zoneInfo();
+  else image(rhinoFerme, tracker.posImageX, tracker.posImageY);
+ 
 
   //DEBUG INFO
   if (key == 'i' || key =='I') affichInterface = true;
