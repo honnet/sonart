@@ -215,62 +215,53 @@ class KinectTracker {
     PVector v1 = tracker.getPos();
 
     if (v1.x <= kw*.43) { //left position visitor
-      visuLeft  += 1;
-      visuRight  = 0;
-      visuCenter  = 0;
-      VizLeft();
+      visuRight = 0;
+      visuCenter = 0;
+      updateMyImage(++visuLeft, 'L');
     }
     else if (v1.x >= kw*.66) { //right
-      visuRight += 1;
       visuLeft = 0;
       visuCenter = 0;
-      VizRight();
+      updateMyImage(++visuRight, 'R');
     }
     else { //centre
-      visuCenter += 1;
       visuLeft = 0;
       visuRight = 0;
-      VizCenter(); 
+      updateMyImage(++visuCenter, 'C');
     }
     image(myImage,posImageX,posImageY);
   }
 
 /////////////////////////////////////////////////////////////////////
-  void VizLeft() {
-    if (visuLeft > ANTIJITTER ) {
-      if (visuLeft < OBSERVTIME) {
-        myImage = rhinoLeft1;
+  void updateMyImage(int visuCount, char pos)
+  {
+    if (visuCount > ANTIJITTER ) {
+      if (visuCount < OBSERVTIME) {
+        switch (pos) {
+          case 'L':
+            myImage = rhinoLeft1;
+            break;
+          case 'R':
+            myImage = rhinoRight1;
+            break;
+          default:
+            myImage = rhinoMiddle;
+        }
       }
       else {
-        myImage = rhinoLeft2;
-        if (visuLeft >= 2*OBSERVTIME - ANTIJITTER) visuLeft = ANTIJITTER+1;
+        switch (pos) {
+          case 'L':
+            myImage = rhinoLeft2;
+            break;
+          case 'R':
+            myImage = rhinoRight2;
+            break;
+          default:
+            myImage = rhinoFerme;
+        }
+        if (visuCount >= 2*OBSERVTIME - ANTIJITTER)
+          visuCount = ANTIJITTER+1;
       } 
-    }
-  }
-
-/////////////////////////////////////////////////////////////////////
-  void VizRight() {
-    if  (visuRight > ANTIJITTER) {
-      if ( visuRight < OBSERVTIME) {
-        myImage = rhinoRight1;
-      }
-      else {
-        myImage = rhinoRight2;
-        if (visuRight >= (2*OBSERVTIME - ANTIJITTER)) visuRight = ANTIJITTER+1;
-      }
-    }
-  }
-
-/////////////////////////////////////////////////////////////////////
-  void VizCenter() {
-    if  (visuCenter > ANTIJITTER) {
-      if ( visuCenter < OBSERVTIME) {
-        myImage = rhinoMiddle;
-      }
-      else {
-        myImage = rhinoFerme;
-        if (visuCenter > 2*OBSERVTIME - ANTIJITTER) visuCenter = ANTIJITTER+1;
-      }
     }
   }
 
