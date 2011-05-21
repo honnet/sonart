@@ -53,6 +53,7 @@ int blur = 1;
 
 /////////////////////////////////////////////////////////
 void setup() {
+  noCursor();
   size(1280,800);
   smooth();
   kinect = new Kinect(this);
@@ -96,9 +97,7 @@ void draw() {
   tint(255,255,255);
 
   tracker.checkDistance();
-  tracker.checkInfo();
-  tracker.checkAppel();
-  tracker.checkAlarm();
+  tracker.checkZone();
 
   if (zone_Appel)      tracker.zoneAppel();
   else if (zone_Alert) tracker.zoneAlert();
@@ -110,8 +109,6 @@ void draw() {
   if (key == 'i' || key =='I') affichInterface = true;
   if (key == 'o' || key =='O') affichInterface = false;
   if (affichInterface) tracker.controlView();
-
-  //delay(20); //waituntil(20) ?
 }
 
 /////////////////////////////////////////////////////////

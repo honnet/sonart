@@ -39,6 +39,9 @@ class KinectTracker {
   //zoneInfo
   int infoTime;
   final int TIMETOINFO = -26;
+  //zoneAlert
+  int displayAlert = 0;
+  final int DISPLAY_ALERT_MAX = 50;
   //distance Depth data
   int[] depth;
   //control orientation camera 
@@ -91,6 +94,7 @@ class KinectTracker {
         }
       }
     }
+
 
     // As long as we found something
     if (count > TOUCH_SURFACE) {    // ALARM
@@ -145,32 +149,32 @@ class KinectTracker {
   }
 
   void setdistCall(int dAppel) {
-    distCall=  dAppel;
+    distCall = dAppel;
   }
 
 /////////////////////////////////////////////////////////////////////
-  void checkAlarm() {
-    if (alertTime > toleranceTime ) {
+  void checkZone() {
+    if (alertTime > toleranceTime) {
       zone_Alert = true;
       zone_Appel = false;
       zone_Info = false;
       alarm.trigger();
       delay(300);
     }
-  }
-
-/////////////////////////////////////////////////////////////////////
-  void checkInfo() {
-    if (infoTime > TIMETOINFO ) {
+    else if (zone_Alert == true)
+    {
+      if (++displayAlert > DISPLAY_ALERT_MAX) // Time to display 
+      {
+        displayAlert = 0;
+        zone_Alert = false;
+      }
+    }
+    else if (infoTime > TIMETOINFO ) {
       zone_Info = true; 
       zone_Appel = false;
       zone_Alert = false;
     }
-  }
-
-/////////////////////////////////////////////////////////////////////
-  void checkAppel() {
-    if (callTime > MAXCALLTIME ) { 
+    else if (callTime > MAXCALLTIME ) { 
       zone_Appel = true; 
       zone_Info = false;
       zone_Alert = false;
@@ -199,15 +203,6 @@ class KinectTracker {
     text(" Ce secrétaire Rhinoceros est ",width/2-310,height/2+50);//ajouter italique
     text(" SENSIBLE ",width/2-100,height/2+118);
     text(" 'SONART' vous révèle l'oeuvre ",width/2-310,height/2+208); 
-
-    ///LIMIT ALERT TIME
-    if (millis() - lastTimeAlert >= 3000) // Time to display next image //
-    {
-      // Increment counter, then compute its modulo, ie. reset it at zero when reaching images.length   
-      lastTimeAlert = millis();
-      // zone_Info = true;
-      zone_Alert = false;
-    }
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -217,23 +212,23 @@ class KinectTracker {
     if (v1.x <= kw*.43) { //left position visitor
       visuRight = 0;
       visuCenter = 0;
-      updateMyImage(++visuLeft, 'L');
+      visuLeft = updateMyImage(++visuLeft, 'L');
     }
     else if (v1.x >= kw*.66) { //right
       visuLeft = 0;
       visuCenter = 0;
-      updateMyImage(++visuRight, 'R');
+      visuRight = updateMyImage(++visuRight, 'R');
     }
     else { //centre
       visuLeft = 0;
       visuRight = 0;
-      updateMyImage(++visuCenter, 'C');
+      visuCenter = updateMyImage(++visuCenter, 'C');
     }
     image(myImage,posImageX,posImageY);
   }
 
 /////////////////////////////////////////////////////////////////////
-  void updateMyImage(int visuCount, char pos)
+  int updateMyImage(int visuCount, char pos)
   {
     if (visuCount > ANTIJITTER ) {
       if (visuCount < OBSERVTIME) {
@@ -263,6 +258,7 @@ class KinectTracker {
           visuCount = ANTIJITTER+1;
       } 
     }
+    return visuCount;
   }
 
 /////////////////////////////////////////////////////////////////////
