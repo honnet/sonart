@@ -5,7 +5,7 @@ class KinectTracker {
   int kh = 480;
 
   int posImageX = 100;
-  int posImageY = 95;
+  int posImageY = 150;
 
   // zoneAlert
   int alertTime;
@@ -17,16 +17,14 @@ class KinectTracker {
 
   float move = 0;
 
-  //int distAlarm= 954;         //zoneAlarmART 
-  //int distCall = 978;         //call zone
-  int distAlarm = 580;
-  int distCall = 876;           //call zone
+  int distAlarm= 954;         //zoneAlarmART 
+  int distCall = 978;         //call zone
 
   //Call zone
   int callTime;
   final int MAXCALLTIME = 50;
 
-  final int OBSERVTIME = 30;
+  final int OBSERVTIME = 40;
   final int ANTIJITTER = 10;
   int visuLeft = 0;
   int visuRight = 0;
@@ -38,7 +36,7 @@ class KinectTracker {
 
   //zoneInfo
   int infoTime;
-  final int TIMETOINFO = -26;
+  final int TIMETOINFO = 10;
   //zoneAlert
   int displayAlert = 0;
   final int DISPLAY_ALERT_MAX = 50;
@@ -94,7 +92,6 @@ class KinectTracker {
         }
       }
     }
-
 
     // As long as we found something
     if (count > TOUCH_SURFACE) {    // ALARM
@@ -174,7 +171,7 @@ class KinectTracker {
       zone_Appel = false;
       zone_Alert = false;
     }
-    else if (callTime > MAXCALLTIME ) { 
+    else { 
       zone_Appel = true; 
       zone_Info = false;
       zone_Alert = false;
@@ -264,22 +261,17 @@ class KinectTracker {
 /////////////////////////////////////////////////////////////////////
   void zoneAppel() { 
     textFont(afficheur);
-    String titre = " Regards Augmentés 'SONART' ";
-    String sujet = " Le toucher à l'ère du numérique ";
+    String titre = "APPROCHEZ-VOUS !";
+    String sujet = "Regards Augmentés - 'SONART' : Le toucher à l'ère du numérique";
 
     image(rhinoFerme,posImageX,posImageY);
 
     fill(0);
-    textSize(48);
-    text(titre,300, 190);
-    textSize(36);
-    text(sujet,xText-50, 230);
+    textSize(56);
+    text(titre, 400, 190);
+    textSize(30);
+    text(sujet, 210, 230);
     fill(50,50,200);
-    xText -= 1;
-
-    if(xText < 205) {
-      xText = 700 + sujet.length();
-    }
 
     //AFFICHE UN LOGO TOUT les ....
     if (millis() - lastTimeLogo >= DISPLAY_TIME) // Time to display next image

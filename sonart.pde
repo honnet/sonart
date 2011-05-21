@@ -16,13 +16,12 @@ import org.openkinect.processing.*;
 
 //sound
 import ddf.minim.*;
-Minim minim ; 
+Minim minim; 
 AudioSample alarm;
 
 //text scrolling
 PFont controlFont;
 PFont afficheur;
-int xText;
 // Showing how we can farm all the kinect stuff out to a separate class
 KinectTracker tracker;
 // Kinect Library object
@@ -45,12 +44,6 @@ int counter;                    // Automatically initialized at 0
 int lastTimeAlert, lastTimeLogo;// When the current image was first displayed
 PImage[] logos = new PImage[NBLOGO];
 
-// TODO : check if useful
-final int PIXELMIN = 2 ;
-final int PIXELMAX = 12;
-int pixel = PIXELMIN;
-int blur = 1;
-
 /////////////////////////////////////////////////////////
 void setup() {
   noCursor();
@@ -62,7 +55,6 @@ void setup() {
   //TEXT STUFF 
   controlFont = createFont("Monospaced", 10);
   afficheur = loadFont("Astronaut-48.vlw");
-  xText= width/2;
   /////SOUND STUFF
   minim = new Minim(this);
 
@@ -99,11 +91,10 @@ void draw() {
   tracker.checkDistance();
   tracker.checkZone();
 
-  if (zone_Appel)      tracker.zoneAppel();
-  else if (zone_Alert) tracker.zoneAlert();
+  if (zone_Alert) tracker.zoneAlert();
   else if (zone_Info)  tracker.zoneInfo();
-  else image(rhinoFerme, tracker.posImageX, tracker.posImageY);
- 
+  else tracker.zoneAppel();
+
 
   //DEBUG INFO
   if (key == 'i' || key =='I') affichInterface = true;
