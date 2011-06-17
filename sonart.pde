@@ -93,7 +93,7 @@ void draw() {
 
   if (zone_Alert) tracker.zoneAlert();
   else if (zone_Info)  tracker.zoneInfo();
-  else tracker.zoneAppel();
+  else if (zone_Appel) tracker.zoneAppel();
 
 
   //DEBUG INFO

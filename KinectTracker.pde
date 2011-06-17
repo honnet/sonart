@@ -9,7 +9,8 @@ class KinectTracker {
 
   // zoneAlert
   int alertTime;
-  int toleranceTime = 9;
+  int toleranceTime = 15;
+
   final int positX = width/2;
   final int positY = 250;
   final int TOUCH_SURFACE = 3;
@@ -17,14 +18,14 @@ class KinectTracker {
 
   float move = 0;
 
-  int distAlarm= 954;         //zoneAlarmART 
-  int distCall = 978;         //call zone
+  int distAlarm= 952;         //zoneAlarmART 952
+  int distCall = 995;         //call zone 977
 
-  //Call zone
+    //Call zone
   int callTime;
-  final int MAXCALLTIME = 50;
+  final int MAXCALLTIME = 40;
 
-  final int OBSERVTIME = 40;
+  final int OBSERVTIME = 60;
   final int ANTIJITTER = 10;
   int visuLeft = 0;
   int visuRight = 0;
@@ -43,11 +44,11 @@ class KinectTracker {
   //distance Depth data
   int[] depth;
   //control orientation camera 
-  int deg = -26;
+  int deg = -26;///29
 
   PImage display;
-
-//////////////////////////////////////////////////////////////
+  int posX = 600;
+  //////////////////////////////////////////////////////////////
   // constructor
   KinectTracker() {
     kinect.start();
@@ -57,7 +58,7 @@ class KinectTracker {
     lerpedLoc = new PVector(-50,-50);
   }
 
-//////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
   void checkDistance() {
     // Get the raw depth as array of integers
     depth = kinect.getRawDepth();
@@ -82,9 +83,11 @@ class KinectTracker {
         }
         //ZONE INFORMATION
         else if (rawDepth > distAlarm && rawDepth <= distCall) {
-          posX += x;
-          posY += y;
-          pos++;
+          if (x>kw/5 && x<kw-kw/5) {
+            posX += x;
+            posY += y;
+            pos++;
+          }
         }
         //ZONE CALL
         else {
@@ -116,7 +119,7 @@ class KinectTracker {
     lerpedLoc.y = PApplet.lerp(lerpedLoc.y, loc.y, 0.3f);
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   PVector getLerpedPos() {
     return lerpedLoc;
   }
@@ -149,7 +152,7 @@ class KinectTracker {
     distCall = dAppel;
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void checkZone() {
     if (alertTime > toleranceTime) {
       zone_Alert = true;
@@ -171,14 +174,14 @@ class KinectTracker {
       zone_Appel = false;
       zone_Alert = false;
     }
-    else { 
+    else if (callTime > MAXCALLTIME ) { 
       zone_Appel = true; 
       zone_Info = false;
       zone_Alert = false;
     }
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void zoneAlert() {
     noStroke();
     fill(0);
@@ -199,7 +202,7 @@ class KinectTracker {
     fill(250,0,0,200);
     text(" Ce secrétaire Rhinoceros est ",width/2-310,height/2+50);//ajouter italique
     text(" SENSIBLE ",width/2-100,height/2+118);
-    text(" 'SONART' vous révèle l'oeuvre ",width/2-310,height/2+208); 
+    text(" 'SONART' vous révèle l'oeuvre ",width/2-310,height/2+208);
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -211,7 +214,7 @@ class KinectTracker {
       visuCenter = 0;
       visuLeft = updateMyImage(++visuLeft, 'L');
     }
-    else if (v1.x >= kw*.66) { //right
+    else if (v1.x >= kw*.70) { //right
       visuLeft = 0;
       visuCenter = 0;
       visuRight = updateMyImage(++visuRight, 'R');
@@ -224,55 +227,67 @@ class KinectTracker {
     image(myImage,posImageX,posImageY);
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   int updateMyImage(int visuCount, char pos)
   {
     if (visuCount > ANTIJITTER ) {
       if (visuCount < OBSERVTIME) {
         switch (pos) {
-          case 'L':
-            myImage = rhinoLeft1;
-            break;
-          case 'R':
-            myImage = rhinoRight1;
-            break;
-          default:
-            myImage = rhinoMiddle;
+        case 'L':
+          myImage = rhinoLeft1;
+          break;
+        case 'R':
+          myImage = rhinoRight1;
+          break;
+        default:
+          myImage = rhinoMiddle;
         }
       }
       else {
         switch (pos) {
-          case 'L':
-            myImage = rhinoLeft2;
-            break;
-          case 'R':
-            myImage = rhinoRight2;
-            break;
-          default:
-            myImage = rhinoFerme;
+        case 'L':
+          myImage = rhinoLeft2;
+          break;
+        case 'R':
+          myImage = rhinoRight2;
+          break;
+        default:
+          myImage = rhinoFerme;
         }
         if (visuCount >= 2*OBSERVTIME - ANTIJITTER)
           visuCount = ANTIJITTER+1;
-      } 
+      }
     }
     return visuCount;
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void zoneAppel() { 
     textFont(afficheur);
-    String titre = "APPROCHEZ-VOUS !";
-    String sujet = "Regards Augmentés - 'SONART' : Le toucher à l'ère du numérique";
-
+    String titre = "Regards Augmentés : 'SONART' ";
+    String sujet = "APPROCHEZ-VOUS ...COME CLOSER...";
+    String complement = "Le toucher à l'ère du numérique";
     image(rhinoFerme,posImageX,posImageY);
 
     fill(0);
     textSize(56);
-    text(titre, 400, 190);
-    textSize(30);
-    text(sujet, 210, 230);
-    fill(50,50,200);
 
+    text(titre, 300, 200);
+    text(titre, 300, 200);
+    posX--;
+
+    textSize(43);
+    text(sujet, posX, 250);
+    if (posX<190) {
+      posX= 600;
+    }
+
+    textSize(38);
+    text(complement,365,135);
+    text(complement,365,135);
+    text(complement,365,135);
+    text(complement,365,135);
+    text(complement,365,135);
     //AFFICHE UN LOGO TOUT les ....
     if (millis() - lastTimeLogo >= DISPLAY_TIME) // Time to display next image
     {
@@ -284,7 +299,7 @@ class KinectTracker {
     image(logos[counter], 130,650);
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void controlView() {
     displayKinectIR();//showCam
     mouvementCamera();//allow MovCam
@@ -326,7 +341,7 @@ class KinectTracker {
     text ("INTERFACE ON/OFF         Press I/O ",controlViewPosX,controlViewPosY + 12*esp);
   }  
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void mouvementCamera() {
     if (keyPressed==true) {
       if (key == CODED) {
@@ -342,7 +357,7 @@ class KinectTracker {
     }
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void displayKinectIR() {
     PImage img = kinect.getDepthImage();
     // Being overly cautious here
@@ -374,7 +389,7 @@ class KinectTracker {
     image(display,300,50,320,240);//resize la video pour debug
   }
 
-/////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////
   void quit() {
     kinect.quit();
   }
