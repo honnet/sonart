@@ -1,6 +1,8 @@
 Welcome to the sonart project!
 
-In this project we used openkinect to detect the presence & position of a person in order to offer more information about a piece of art in a museum.
+In this project we used openkinect to detect the presence & position of a person in order to offer more information about a piece of art (Rinocrétaire) in the "art décoratifs" museum.
+Here is a demonstration video: http://www.youtube.com/watch?v=f18OT1uiAIs
+
 The system is composed of:
 -a kinect to detect visitors
 -a mini-PC with ubuntu and processing.org to get the data from the kinect
